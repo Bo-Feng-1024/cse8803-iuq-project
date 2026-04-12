@@ -1,6 +1,6 @@
 # LLM-Informed Bayesian Priors for Reducing Experimental Cost in Behavioral Economics
 
-**CSE 8803 IUQ** (Inverse Problems Under Uncertainty) — Spring 2026, Georgia Tech
+**CSE 8803 IUQ** (Introduction to Uncertainty Quantification) — Spring 2026, Georgia Tech
 
 **Author:** Bo Feng (bfeng66@gatech.edu)
 
