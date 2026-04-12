@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+checkin/*.aux
+checkin/*.log
+checkin/*.bbl
+checkin/*.blg
+checkin/*.fdb_latexmk
+checkin/*.fls
+checkin/*.out
