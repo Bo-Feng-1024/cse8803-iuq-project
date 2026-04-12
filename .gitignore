@@ -8,3 +8,4 @@ checkin/*.blg
 checkin/*.fdb_latexmk
 checkin/*.fls
 checkin/*.out
+todo/
