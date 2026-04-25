@@ -41,7 +41,7 @@
 \end{block}
 \note{Recruiting 200 subjects easily costs ten thousand dollars and weeks of IRB. Meanwhile a
 contemporary LLM responds to the same prompt the experimenter would read aloud, in seconds,
-for cents. The natural UQ question: can we treat the LLM as an informative Bayesian prior?
+for cents. The UQ question is: can we treat the LLM as an informative Bayesian prior?
 That's the project.}
 \end{frame}
 
@@ -178,11 +178,11 @@ vs.\ $\rho_{\text{giving}} = 0.26$
 \textbf{The LLM prior generalises -- partially.}
 \end{column}
 \end{columns}
-\note{Phillip's strongest suggestion: do this on the taking game. Result: rho equals
-zero point five five, twice as high. Why? GPT-4o under the taking prompt has counterpart
-kept share of zero point five two, but humans in the taking game keep only zero point
-three four. Humans take more aggressively than the LLM. The LLM generalises the
-protocol but not the framing-induced behavioural shift.}
+\note{The check-in's strongest suggestion was to do this on the taking game. Result: rho
+equals zero point five five, twice as high. Why? GPT-4o under the taking prompt has
+counterpart-kept share of zero point five two, but humans in the taking game keep only
+zero point three four. Humans take more aggressively than the LLM. The LLM generalises
+the protocol but not the framing-induced behavioural shift.}
 \end{frame}
 
 % ============================================================
@@ -201,7 +201,7 @@ protocol but not the framing-induced behavioural shift.}
 \begin{itemize}\setlength{\itemsep}{2pt}
   \item $\delta \le 0$: stays calibrated
   \item $\delta \in [+0.25, +1.5]$: coverage drops to 0.83
-  \item $\delta \ge +1.75$: data wins
+  \item $\delta \ge +1.75$: data dominates
 \end{itemize}
 \vspace{0.5em}
 \textbf{Moderate misspecification is the dangerous regime}.
@@ -286,11 +286,11 @@ from training-data overlap.}
 \end{itemize}
 \end{column}
 \end{columns}
-\note{The honest list. The biggest one: I never actually tested SVGD in the regime where
-it would dominate MCMC, because I only ever inferred two parameters. The natural
-extension is a hierarchical model across both game variants. That gets you to five
-parameters with correlations, and is exactly the d-regime where SVGD's particle update
-would amortise.}
+\note{The list. The biggest one: I never actually tested SVGD in the regime where it
+would dominate MCMC, because I only ever inferred two parameters. The extension is
+a hierarchical model across both game variants. That gets you to five parameters
+with correlations, and is exactly the d-regime where SVGD's particle update would
+amortise.}
 \end{frame}
 
 % ============================================================
@@ -300,15 +300,15 @@ would amortise.}
   \item $\rho \approx 0.55$ on the taking game: LLM prior generalises across protocols, not framings.
   \item Calibration: nominal at unshifted prior; trough at moderate upward shift, not at extreme shifts.
   \item Leakage: not the source of the sample-size benefit, but plausibly part of why gpt-4o has a better-located prior than gpt-3.5.
-  \item SVGD vs MCMC at $d=2$: MCMC wins by 100$\times$ in ESS/sec; SVGD's value awaits the higher-d hierarchical extension.
+  \item SVGD vs MCMC at $d=2$: MCMC delivers 100$\times$ higher ESS/sec; SVGD's value awaits the higher-d hierarchical extension.
 \end{itemize}
 \vspace{0.6em}
 \centering\small
 \href{https://github.gatech.edu/bfeng66/cse8803-iuq-project}{github.gatech.edu/bfeng66/cse8803-iuq-project}
 \note{To wrap up: rho around zero point two six on the headline experiment, zero point
 five five on the cross-game replication, calibration is good outside of moderately
-misspecified upward shifts, the leakage ablation cleanly disentangles variance shrinkage
-from prior-location quality, and SVGD waits for the higher-dimensional sequel. Thanks;
+misspecified upward shifts, the leakage ablation separates variance shrinkage from
+prior-location quality, and SVGD waits for the higher-dimensional sequel. Thanks;
 I'm happy to take questions.}
 \end{frame}
 
