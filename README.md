@@ -123,7 +123,7 @@ Coverage (gpt-4o LLM, n=50):           0.976
 | Coverage (flat prior, n=50) | 97.6% |
 | Failure mode | $\delta \in [+0.25, +1.5]$ shifts coverage to 0.83 |
 | MCMC ESS/sec at $d=2, n=50$ | $\sim 1.2 \times 10^4$ |
-| SVGD ESS/sec at $d=2, n=50$ | $\sim$14--270 |
+| SVGD ESS/sec at $d=2, n=50$ | $\sim 14\text{--}270$ |
 
 ## Data Sources
 
