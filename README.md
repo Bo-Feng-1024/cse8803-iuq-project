@@ -10,7 +10,11 @@
 
 ## Overview
 
-This project implements a Bayesian framework in which LLM (GPT-4o) simulations serve as an informative prior and real human observations provide the likelihood. We compare a flat-prior MCMC baseline against an LLM-informed SVGD frontier method on dictator game data, measuring the sample-size reduction ratio $\rho = n^{\ast}_{\text{LLM}} / n^{\ast}_{\text{flat}}$.
+This project implements a Bayesian framework in which LLM (GPT-4o) simulations serve as an informative prior and real human observations provide the likelihood. We compare a flat-prior MCMC baseline against an LLM-informed SVGD frontier method on dictator game data, measuring the sample-size reduction ratio:
+
+```math
+\rho = \frac{n^{\ast}_{\text{LLM}}}{n^{\ast}_{\text{flat}}}
+```
 
 ## Repository Structure
 
