@@ -90,8 +90,8 @@ misspecification, where it falls to $\sim$83\%. A leakage ablation with \texttt{
 (pre-Horton2023 cutoff) recovers an identical $\rho = 0.26$ but with markedly worse coverage
 (0.83 vs 0.98 at $n{=}50$), indicating that the gpt-4o advantage is calibration quality, not
 sample-size benefit, and that the result is not a pure training-data leakage artefact. We report the compute--accuracy
-trade-off, document the regimes where the LLM prior helps and hurts, and discuss why SVGD
-becomes the natural inference engine in higher-dimensional extensions of this template.
+trade-off, document the regimes where the LLM prior helps and hurts, and discuss when SVGD
+becomes a useful inference engine for higher-dimensional extensions of this template.
 \end{abstract}
 
 % ============================================================
@@ -104,7 +104,7 @@ condition, at high marginal cost per observation. Yet a contemporary LLM, prompt
 same instructions an experimenter would read to a participant, can produce thousands of
 synthetic decisions in minutes~\citep{horton2023large, argyle2023silicon, aher2023using}.
 These ``silicon subjects'' are not human substitutes, but their distribution carries
-information about the behavior we are trying to estimate. The natural question for
+information about the behavior we are trying to estimate. The relevant question for
 uncertainty quantification (UQ) is: \emph{how much real data does an LLM prior save, and
 under what conditions does it harm calibration?}
 
@@ -139,9 +139,9 @@ construction~\citep{ibrahim2000power} as a transparent, single-knob instantiatio
 SVGD~\citep{liu2016stein} approximates a posterior by a deterministic interacting particle
 system whose update direction is the kernelised score of the target. It scales to
 intermediate dimensions where MCMC mixing degrades but standard mean-field VI cannot capture
-posterior dependence. Our pipeline uses SVGD to demonstrate the design pattern; we
-honestly report below that for the two-parameter Beta posterior, MCMC is faster
-per equivalent ESS, and discuss why SVGD becomes attractive when the model dimension grows.
+posterior dependence. Our pipeline uses SVGD to instantiate the design pattern; we
+report below that for the two-parameter Beta posterior MCMC is faster per equivalent ESS,
+and discuss when SVGD becomes attractive as the model dimension grows.
 
 % ============================================================
 \section{Method}
@@ -291,8 +291,8 @@ smaller human sample. Figure~\ref{fig:nstar_giving} plots the variance--$n$ curv
 \subsection{Cross-game replication (taking-game)}
 \label{sec:taking}
 
-Phillip's check-in feedback flagged that cross-game consistency of $\rho$ is the strongest
-generalization claim available. We re-elicited 500 pseudo-observations from GPT-4o under the
+The check-in identified cross-game consistency of $\rho$ as the strongest generalization
+claim accessible from this dataset. We re-elicited 500 pseudo-observations from GPT-4o under the
 taking-game prompt (the agent may take up to \texteuro{}10 from a counterpart's endowment;
 we record sharing ratio = $1 - \text{taken}/10$), then ran the full pipeline on the 68
 taking-game observations. Table~\ref{tab:gp_taking} and Figure~\ref{fig:nstar_taking}
@@ -421,14 +421,14 @@ compares the priors and resulting $\rho$.
 \end{table}
 
 \noindent
-The result is striking and nuanced. \emph{Sample-size reduction is identical:}
+The ablation breaks into two parts. \emph{Sample-size reduction is identical:}
 $\rho_{\mathrm{gpt-3.5}} = 0.261$ matches $\rho_{\mathrm{gpt-4o}} = 0.261$ to three
 significant figures. \emph{Calibration, however, is not:} the gpt-3.5 prior has mean
 $0.55$, far above the human mean of $0.36$, and at $n=50$ the 95\% posterior-predictive
 coverage drops to $0.83$ -- the same coverage degradation observed at $\delta = +1$ in
 the dense misspecification grid (\S\ref{sec:dense}). Read together with that grid, the
-ablation cleanly disentangles two effects. (i) Power-prior \emph{variance shrinkage} is
-governed by the prior's effective weight $w$ and is therefore essentially independent of
+ablation separates two effects. (i) Power-prior \emph{variance shrinkage} is
+governed by the prior's effective weight $w$ and is therefore largely independent of
 which LLM produced the pseudo-observations. (ii) Power-prior \emph{calibration} is
 governed by the prior's location relative to the data, which \emph{does} differ between
 LLMs. The gpt-4o advantage over gpt-3.5 in this pipeline is not the existence of a prior
@@ -447,7 +447,7 @@ The power prior contributes weight $w$ pseudo-observations; a posterior trained 
 plus $w$ pseudo-observations behaves, in information units, like one trained on $n+w$ real
 observations. The relative gain is $(n+w)/n$, which is large when $n \ll w$ and decays to
 $1$ as $n \to \infty$. Our $1.42\times$ ratio at $n=50, w=20$ is consistent with this analytic
-prediction $(50+20)/50 = 1.4$. The LLM prior is essentially a free $w$-observation pre-fix.
+prediction $(50+20)/50 = 1.4$. The LLM prior acts as a free $w$-observation pre-fix.
 
 \paragraph{Asymmetric coverage failure.}
 The dense curve in Figure~\ref{fig:dense} confirms the asymmetry first noted in the check-in.
@@ -468,9 +468,9 @@ calibration -- is the lever an LLM has on this problem, and we cannot rule out t
 leakage as one ingredient that gives gpt-4o better location than gpt-3.5. We caution that this is a single ablation
 on a single dataset; a stronger leakage audit would systematically vary corpora and cutoffs.
 
-\paragraph{Why SVGD here, when MCMC wins on ESS/sec?}
-The Pareto analysis (Figure~\ref{fig:pareto}) is honest: at $d = 2$ for a unimodal Beta
-posterior, MH-MCMC mixes well, costs $O(1)$ per sample, and produces ESS/sec roughly
+\paragraph{Why SVGD here, when MCMC has higher ESS/sec?}
+The Pareto analysis (Figure~\ref{fig:pareto}) reports a clear cost: at $d = 2$ for a unimodal
+Beta posterior, MH-MCMC mixes well, costs $O(1)$ per sample, and produces ESS/sec roughly
 $10$--$100\times$ that of our SVGD implementation. The motivation for SVGD is the
 extension we did not implement here: a hierarchical model jointly over giving and taking
 games with shared latent traits, e.g.\ $(\alpha_{\mathrm{give}}, \beta_{\mathrm{give}},
