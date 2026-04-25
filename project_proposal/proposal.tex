@@ -1,0 +1,339 @@
+% ============================================================
+% CSE 8803 IUQ — Project Proposal
+% Format: SIAM JUQ style (11pt, 1-inch margins, single-spaced)
+% Due: March 2, 2026 at 11:59 PM EST
+% ============================================================
+
+\documentclass[11pt]{article}
+
+% --- Page layout ---
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\singlespacing
+
+% --- Math ---
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{bm}
+
+% --- Fonts & encoding ---
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+
+% --- Figures & tables ---
+\usepackage{graphicx}
+\usepackage{booktabs}
+
+% --- Hyperlinks ---
+\usepackage[colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref}
+
+% --- Bibliography ---
+\usepackage{natbib}
+\bibliographystyle{plainnat}
+
+% --- Header ---
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small CSE 8803 IUQ — Project Proposal}
+\lhead{\small Bo Feng}
+\cfoot{\thepage}
+
+% ============================================================
+
+\begin{document}
+
+% --- Title block ---
+\begin{center}
+  {\Large\bfseries LLM-Informed Bayesian Priors for Reducing\\
+  Experimental Cost in Behavioral Economics}
+
+  \vspace{0.8em}
+
+  {\normalsize
+    Bo Feng\\
+    \texttt{bfeng66@gatech.edu}\\
+    Georgia Institute of Technology\\
+    CSE 8803 IUQ — Spring 2026
+  }
+
+  \vspace{0.8em}
+  {\small \today}
+\end{center}
+
+\vspace{0.5em}
+\hrule
+\vspace{1em}
+
+% --- Abstract ---
+\begin{abstract}
+Human experiments in behavioral economics are expensive, yet large
+language models (LLMs) exhibit qualitatively human-like behavior in
+classic economic games~\citep{horton2023homosilicus} and encode
+knowledge equivalent to dozens of human observations for economic
+variables~\citep{gao2026measure}.
+We propose a Bayesian framework in which LLM simulations serve as an
+informative prior and real human observations provide the likelihood,
+keeping the two data sources in strictly separate roles to avoid
+methodological circularity.
+Our primary metric is the \emph{sample size reduction ratio}
+$\rho = n^*_{\mathrm{LLM}} / n^*_{\mathrm{flat}}$: the minimum human
+observations needed to reach a target posterior precision under the
+LLM prior versus a flat prior.
+We implement a flat-prior MCMC baseline and an LLM-informed SVGD
+frontier method, and evaluate both on dictator-game and ultimatum-game
+data from \citet{horton2023homosilicus}.
+\end{abstract}
+
+\vspace{1em}
+\hrule
+\vspace{1em}
+
+% ============================================================
+\section{Review of the Literature}
+% ============================================================
+
+\paragraph{\citet{horton2023homosilicus}.}
+Horton introduces ``homo silicus'': LLMs queried as simulated
+experimental subjects replicate qualitative findings of dictator and
+ultimatum games, yielding sharing-ratio distributions broadly
+consistent with published human data.
+The analysis is purely qualitative with no uncertainty bounds, but it
+establishes the elicitation protocol and the human-response dataset we
+use as ground truth for evaluation.
+
+\paragraph{\citet{gao2026measure}.}
+Gao, Han, and Liang define the \emph{equivalent sample size} (ESS) of
+an LLM's pretrained knowledge as the task-specific human observations
+needed to match LLM prediction error, finding values of dozens to
+hundreds for certain economic variables.
+ESS is a frequentist prediction metric with no direct Bayesian
+interpretation; our work operationalizes the ESS intuition inside a
+Bayesian pipeline, translating it into the sample-size reduction ratio
+$\rho$.
+
+\paragraph{\citet{ludwig2025econometrics}.}
+Ludwig, Mullainathan, and Rambachan show that valid LLM-assisted
+inference requires strict separation of LLM training data from the
+researcher's sample (``no training leakage'') and a held-out
+validation sample for estimation.
+Although their framework targets prediction/estimation rather than
+Bayesian priors, our prior/likelihood role separation directly
+implements the no-leakage requirement, and a held-out subset of the
+Horton data serves as the validation sample.
+
+\paragraph{\citet{shorinwa2025survey}.}
+Shorinwa et al.\ provide a comprehensive taxonomy of UQ methods for
+LLMs---covering epistemic/aleatoric decomposition, calibration
+metrics, and conformal prediction---though the focus is uncertainty
+\emph{of the LLM} rather than of downstream parameters $\theta$.
+Their calibration framework supplies our evaluation metric (empirical
+coverage of 95\% credible intervals) and their epistemic/aleatoric
+distinction motivates the failure-mode sensitivity analysis.
+
+\paragraph{\citet{gui2025challenge}.}
+Gui and Toubia show that standard blind-prompting in LLM experiments
+violates unconfoundedness---treatment variations alter unspecified
+contextual variables, biasing simulated responses---with no general
+solution when unblinding itself changes behavior.
+This motivates our prior-misspecification sensitivity analysis: a
+biased LLM prior proxies for blind-prompting confounding, and we
+measure the resulting degradation in posterior coverage.
+
+\paragraph{LLM-elicited priors: closest related work.}
+Three concurrent works use LLMs to construct Bayesian priors; we
+address each in turn.
+
+\citet{capstick2024autoelicit} propose AutoElicit, which queries an
+LLM for the mean and standard deviation of a Gaussian prior over each
+feature of a \emph{linear predictive model}, then forms a
+$K{=}100$-component Gaussian mixture prior and runs MCMC inference.
+The evaluation metric is posterior predictive accuracy on clinical
+datasets (UTI, heart disease).
+Our approach differs along four dimensions.
+(i)~\textit{Domain and generative model.}
+AutoElicit targets regression/classification weights $\theta \in
+\mathbb{R}^d$ under a linear likelihood; we target behavioral
+parameters $\theta = (\alpha,\beta)$ of a Beta likelihood for sharing
+ratios in economic games---a bounded, compositional parameter with no
+natural Gaussian form.
+(ii)~\textit{Elicitation mechanism.}
+AutoElicit asks the LLM to report $(\mu_k, \sigma_k)$ directly;
+we instead ask the LLM to \emph{simulate} $M{=}500$ behavioral
+observations and derive $(\alpha,\beta)$ from them as
+pseudo-observations, which is more natural for behavioral proportions.
+(iii)~\textit{Primary metric.}
+AutoElicit measures predictive accuracy at fixed $n$; our primary
+metric is the \emph{sample size reduction ratio}
+$\rho = n^*_{\mathrm{LLM}}/n^*_{\mathrm{flat}}$---a quantity not
+reported by any prior work.
+(iv)~\textit{ESS-calibrated prior weight.}
+AutoElicit assigns no principled weight to the LLM prior; we scale
+pseudo-observation count by $w$ calibrated to the equivalent sample
+size of \citet{gao2026measure}, grounding prior strength in a
+measurable quantity.
+AutoElicit also does not adopt SVGD, the no-leakage framework of
+\citet{ludwig2025econometrics}, or a systematic prior-misspecification
+analysis.
+
+\citet{gouk2024autoprior} (described in \citealt{capstick2024autoelicit})
+use LLMs to generate synthetic feature--label pairs from public
+datasets, which implicitly define a prior through a separate likelihood
+term during training.
+This is \emph{not} a Bayesian prior in the usual sense: LLM-generated
+data enters the likelihood, not the prior, so there is no
+prior/likelihood role separation.
+\citeauthor{capstick2024autoelicit} note this makes the method
+susceptible to LLM data memorization on public benchmarks; our
+held-out Horton data and explicit role separation avoid this failure
+mode.
+
+\citet{huang2025llmbi} propose LLM-BI, a proof-of-concept pipeline in
+which an LLM translates a \emph{user's natural-language belief
+description} into prior distributions and a likelihood function for
+Bayesian linear regression.
+LLM-BI validates that posteriors from LLM-specified priors agree with
+posteriors from manually specified priors on synthetic data.
+Our work differs on three points.
+(i)~LLM-BI relies on the \emph{user} to supply prior beliefs in
+natural language; we rely on the \emph{LLM's own behavioral knowledge}
+from pretraining, without any user-provided prior information.
+(ii)~LLM-BI is evaluated on synthetic data with no human experimental
+data; our evaluation uses real dictator- and ultimatum-game data.
+(iii)~LLM-BI does not address sample-size reduction, prior
+calibration, training-data leakage, or failure-mode robustness.
+
+% ============================================================
+\section{Description of the Proposed Project}
+% ============================================================
+
+\subsection{Problem Statement and Significance}
+
+We consider Bayesian inference over human behavioral parameters in economic
+experiments, with an LLM serving as an informative prior.
+Let $\theta \in \Theta$ parametrize the distribution of human behavior---in
+the dictator game, $\theta = (\alpha, \beta)$ are the shape parameters of a
+Beta likelihood $p(y \mid \theta) = \mathrm{Beta}(y; \alpha, \beta)$ for
+sharing ratios $y \in [0,1]$.
+Given $n$ human observations $\mathbf{y} = \{y_1, \ldots, y_n\}$, the
+posterior is:
+%
+\begin{equation}
+  p(\theta \mid \mathbf{y}) \;\propto\; p(\mathbf{y} \mid \theta)\cdot p(\theta).
+  \label{eq:bayes}
+\end{equation}
+%
+Our quantity of interest (QoI) is the posterior $p(\theta \mid \mathbf{y})$
+and, operationally, the minimum sample size $n^*$ required to reach a target
+posterior precision $\sigma^2_{\mathrm{target}}$.
+The central UQ question is: \textit{how much does an LLM-informed prior
+reduce $n^*$ relative to a flat prior?}
+
+Human experiments are costly (\$10--50 per participant on MTurk), yet
+\citet{gao2026measure} show LLM knowledge is worth dozens to hundreds of
+human observations for certain economic variables.
+Our framework assigns LLM predictions and human data to \emph{strictly
+separate} roles in \eqref{eq:bayes}: LLM outputs enter only through the
+prior, human data only through the likelihood.
+This avoids the circularity of calibrating an LLM against human data and
+then using it to predict human behavior---the role-separation also
+directly implements the no-leakage requirement of \citet{ludwig2025econometrics}.
+One caveat: a modern LLM trained after January 2023 may have seen
+Horton's published results; we treat this as a failure mode and address it
+in the sensitivity analysis.
+
+\subsection{Methodology}
+
+\paragraph{Prior construction.}
+For each experimental condition $x$, we query GPT-4o
+(\texttt{gpt-4o-2024-08-06}) with a natural-language description of the game
+and collect $M = 500$ simulated sharing ratios $\{\tilde{y}_1, \ldots,
+\tilde{y}_M\}$.
+We treat these as $M$ pseudo-observations and use them as sufficient
+statistics to initialize a conjugate Beta prior over $\theta = (\alpha,
+\beta)$, scaled by an effective weight $w \in (0,1]$ calibrated to the
+equivalent sample size of \citet{gao2026measure}.
+This yields the LLM-informed prior $p_{\mathrm{LLM}}(\theta \mid x)$.
+
+\paragraph{Baseline.}
+A flat prior $p(\theta) \propto 1$ combined with MCMC (Metropolis--Hastings)
+provides the posterior $p(\theta \mid \mathbf{y})$.
+We estimate the minimum sample size $n^*_{\mathrm{flat}}$ by running
+inference at $n \in \{5, 10, 20, 50, 100, 200\}$ and interpolating the
+threshold where posterior variance on $\mu = \alpha/(\alpha+\beta)$ drops
+below $\sigma^2_{\mathrm{target}} = 0.1 \times \mathrm{Var}_{\mathrm{prior}}(\mu)$.
+
+\paragraph{Frontier method.}
+We substitute $p_{\mathrm{LLM}}(\theta)$ for the flat prior and use Stein
+Variational Gradient Descent (SVGD) for posterior inference.
+Although the present problem is low-dimensional ($\theta \in \mathbb{R}^2$),
+SVGD is adopted as the frontier method because it generalizes naturally to
+multiple experimental conditions and higher-dimensional behavioral parameter
+spaces; the particle-based representation also makes posterior geometry
+immediately visualizable.
+We obtain $n^*_{\mathrm{LLM}}$ by the same interpolation procedure.
+
+\paragraph{Evaluation.}
+Our primary metric is the \textbf{sample size reduction ratio}
+$\rho = n^*_{\mathrm{LLM}} / n^*_{\mathrm{flat}}$,
+where $\rho < 1$ indicates cost reduction.
+We additionally evaluate:
+\begin{itemize}
+  \item \textit{Posterior calibration}: empirical coverage of 95\%
+        credible intervals on a held-out split of the Horton data.
+  \item \textit{Compute--accuracy tradeoff}: wall-clock time and ESS
+        for SVGD vs.\ MCMC at matched accuracy.
+  \item \textit{Failure mode}: we artificially shift the LLM prior mean
+        by $\pm 1, 2$ standard deviations and measure coverage degradation,
+        identifying conditions under which the informative prior is harmful.
+\end{itemize}
+The framework is applied to the dictator game and ultimatum game from
+\citet{horton2023homosilicus}.
+
+\paragraph{Compute plan and risks.}
+LLM queries require $M \times K \approx 500 \times 4$ API calls (two games,
+two conditions each), costing under \$5.
+MCMC and SVGD runs are CPU-only and complete in minutes for a 2-parameter
+model.
+The primary risk is LLM prior misspecification (e.g., due to training-data
+leakage from Horton's published results); this is explicitly studied in the
+failure-mode evaluation above.
+
+\subsection{Contributions}
+
+We contribute a Bayesian framework that incorporates LLM simulations as
+informative priors with strict prior/likelihood separation, an empirical
+characterization of sample-size reduction $\rho$ across multiple game
+settings, and a robustness analysis identifying when LLM priors help
+versus hurt posterior inference.
+
+\subsection{Plan and Timeline}
+
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabular}{llp{7cm}}
+    \toprule
+    \textbf{Date} & \textbf{Milestone} & \textbf{Deliverable} \\
+    \midrule
+    Mar 2   & Proposal submission  & This document + 3--4 slides \\
+    Mar 11  & Check-in 1           & Baseline implemented (flat prior + MCMC) on
+                                     Horton (2023) dictator game; initial
+                                     posterior results \\
+    Apr 8   & Check-in 2           & LLM prior construction + SVGD implemented;
+                                     preliminary comparison to baseline \\
+    Apr 27  & Final presentation   & 15-min talk with full evaluation results \\
+    Finals  & Final report         & 10-page report + reproducible code \\
+    \bottomrule
+  \end{tabular}
+  \caption{Project timeline.}
+  \label{tab:timeline}
+\end{table}
+
+% ============================================================
+% References
+% ============================================================
+
+\bibliography{references}
+
+\end{document}
